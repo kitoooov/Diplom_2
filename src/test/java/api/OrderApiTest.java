@@ -2,6 +2,7 @@ package api;
 
 import client.OrderClient;
 import client.UserClient;
+import model.User;
 import org.junit.Before;
 import org.junit.Test;
 import io.qameta.allure.Description;
@@ -28,18 +29,14 @@ public class OrderApiTest {
 
         String email = "test" + System.currentTimeMillis() + "@mail.com";
 
-        String registerBody =
-                "{ \"email\": \"" + email + "\", " +
-                        "\"password\": \"1234\", \"name\": \"test\" }";
+        User registerUser = new User(email, "1234", "test");
+        User loginUser = new User(email, "1234");
 
-        String loginBody =
-                "{ \"email\": \"" + email + "\", " +
-                        "\"password\": \"1234\" }";
+        userClient.createUser(registerUser);
 
-        userClient.createUser(registerBody);
-
-        token = userClient.loginUser(loginBody)
+        token = userClient.loginUser(loginUser)
                 .then()
+                .statusCode(200)
                 .extract()
                 .path("accessToken");
     }

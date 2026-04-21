@@ -1,40 +1,61 @@
 package api;
 
 import client.UserClient;
+import model.User;
 import org.junit.Test;
+
 import io.qameta.allure.junit4.DisplayName;
+
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.notNullValue;
 
 public class LoginApiTest {
 
     UserClient userClient = new UserClient();
 
-    // успешный вход
     @Test
+    @DisplayName("Успешный вход пользователя")
     public void loginSuccess() {
 
         String email = "test" + System.currentTimeMillis() + "@mail.com";
 
-        String registerBody = "{ \"email\": \"" + email + "\", " +
-                "\"password\": \"1234\", \"name\": \"test\" }";
+        User registerUser = new User(email, "1234", "test");
+        User loginUser = new User(email, "1234");
 
-        String loginBody = "{ \"email\": \"" + email + "\", " +
-                "\"password\": \"1234\" }";
+        userClient.createUser(registerUser);
 
-        userClient.createUser(registerBody);
-
-        userClient.loginUser(loginBody)
+        userClient.loginUser(loginUser)
                 .then()
-                .statusCode(200);
+                .statusCode(200)
+                .body("accessToken", notNullValue());
     }
 
-    // неверный логин/пароль
     @Test
-    public void loginWrongCredentials() {
+    @DisplayName("Ошибка входа: неверный email")
+    public void loginWrongEmail() {
 
-        String body = "{ \"email\": \"wrong@mail.com\", \"password\": \"wrong\" }";
+        User loginUser = new User("wrong@mail.com", "1234");
 
-        userClient.loginUser(body)
+        userClient.loginUser(loginUser)
                 .then()
-                .statusCode(401);
+                .statusCode(401)
+                .body("message", equalTo("email or password are incorrect"));
+    }
+
+    @Test
+    @DisplayName("Ошибка входа: неверный пароль")
+    public void loginWrongPassword() {
+
+        String email = "test" + System.currentTimeMillis() + "@mail.com";
+
+        User registerUser = new User(email, "1234", "test");
+        userClient.createUser(registerUser);
+
+        User loginUser = new User(email, "wrongPassword");
+
+        userClient.loginUser(loginUser)
+                .then()
+                .statusCode(401)
+                .body("message", equalTo("email or password are incorrect"));
     }
 }

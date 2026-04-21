@@ -1,24 +1,28 @@
 package client;
 
+import io.qameta.allure.Step;
 import io.restassured.response.Response;
+import model.User;
+
 import static io.restassured.RestAssured.given;
 
 public class UserClient {
 
-    private static final String BASE_URL =
-            "https://stellarburgers.education-services.ru/api";
-    public Response createUser(String body) {
+    @Step("Создать пользователя")
+    public Response createUser(User user) {
         return given()
-                .header("Content-type", "application/json")
-                .body(body)
-                .post(BASE_URL + "/auth/register");
+                .spec(Config.spec)
+                .body(user)
+                .when()
+                .post("/auth/register");
     }
 
-    public Response loginUser(String body) {
+    @Step("Логин пользователя")
+    public Response loginUser(User user) {
         return given()
-                .header("Content-type", "application/json")
-                .body(body)
-                .post(BASE_URL + "/auth/login");
+                .spec(Config.spec)
+                .body(user)
+                .when()
+                .post("/auth/login");
     }
 }
-
